@@ -1,0 +1,94 @@
+---
+title: "EjercicioFInalCuanlitativas"
+author: "JJ"
+date: "5/7/2019"
+output: html_document
+---
+
+# Ejemplo Final
+
+## Juntar color de ojos y pelo sin distinguir por sexo
+
+```{r}
+HairEyeColor
+male <- HairEyeColor[,,'Male']
+female <- HairEyeColor[,,'Female']
+datos <- as.table(male+female)
+datos
+```
+
+
+### Manipulación de datos
+
+```{r}
+dimnames(datos) <- list(
+  Pelo = c('Negro', 'Castaño', 'Pelirrojo', 'Rubio'), #Importante si no pongo = no saldrá el nombre de esta dimensión
+  Ojos = c('Marrones', 'Azules', 'Avellana', 'Verdes')
+)
+datos
+```
+
+## Diagrama de Mosaico
+
+```{r}
+plot(datos, col = c('lightblue'), main='Diagrama de mosaico')
+```
+
+## Datos numericos
+```{r}
+sum(datos)
+```
+
+## Tabla de frecuencias absoluta y relativas
+
+
+```{r}
+rowSums(datos)
+colSums(datos)
+round(prop.table(colSums(datos)),3)
+round(prop.table(rowSums(datos)), 3)
+```
+
+## Bar plots
+```{r}
+barplot(round(prop.table(colSums(datos)),3), ylim = c(0,0.4),
+        main='Frecuencias relativas color ojos', legend.text = TRUE, 
+        col=c('burlywood4', 'blue', 'orange3', 'lightgreen'))
+barplot(round(prop.table(rowSums(datos)), 3), ylim = c(0,0.6),
+        main='Frecuencias relativas color de pelo', legend.text = TRUE, 
+        col = c('black', 'burlywood4', 'red', 'yellow'))
+```
+
+## Frecuencia relativa global
+No hay que hacer un prop.table de table ya que nuestros datos ya son una tabla!!!
+
+```{r}
+round(prop.table(datos),3)
+```
+
+
+
+## Frecuencias relativas marginales
+
+
+```{r}
+round(prop.table(datos, margin=1), 3) #Marginal por filas
+round(prop.table(datos, margin=2), 3) #Marginal por columnas
+
+```
+
+## Histograma de frecuencias relativas
+```{r}
+barplot(round(prop.table(datos, margin = 1), 3), 
+        col = c('black', 'burlywood4', 'red', 'gold'),
+        main = 'Frecuencias relativas del color de pelo \n para cada color de ojo',
+        legend.text = TRUE, ylim = c(0, 0.8), beside = TRUE)
+```
+```{r}
+barplot(t(prop.table(datos, margin = 2)), 
+        col = c('burlywood4', 'lightblue', 'orange3', 'lightgreen'),
+        main = 'Frecuencias relativas del color de ojos \n para cada color de pelo',
+        legend.text = TRUE, ylim = c(0, 0.6), beside = TRUE)
+```
+
+
