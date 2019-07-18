@@ -1,0 +1,60 @@
+---
+title: "Ejercicio Insecticida"
+author: "JJ"
+date: "17/7/2019"
+output: html_document
+---
+#Analisis espray insecticidas
+
+Cargamos datos del data set de `R InsectSprays`.
+
+```{r}
+datos <- InsectSprays
+head(datos)
+str(datos)
+```
+
+```{r}
+by(datos$count, datos$spray, FUN = summary)
+```
+
+```{r}
+aggregate(count~spray, data = datos, FUN = sd)
+```
+
+
+```{r}
+str(boxplot(datos$count~spray, data = datos, col='lightgreen',
+        xlab = 'Tipo de spray', ylab='Insectos muertos'))
+```
+
+```{r}
+datos2 <- read.table('data/grades.txt')
+head(datos2)
+```
+```{r}
+round(mean(datos2$nota),2)
+round(median(datos2$nota),2)
+
+```
+
+```{r}
+aggregate(nota~estudio, data= datos2, FUN = mean)
+aggregate(nota~estudio, data= datos2, FUN = median)
+aggregate(nota~estudio, data= datos2, FUN = max)
+aggregate(nota~estudio, data= datos2, FUN = min)
+```
+
+```{r}
+rango <- function(d){diff(range(d))}
+aggregate(nota~estudio, data= datos2, FUN = rango)
+```
+
+```{r}
+boxplot(nota~estudio, data = datos2, col='lightgreen',
+        xlab = 'Estudio', ylab='Notas', main= 'Boxplot para cada estudio con su nota media')
+medias <- by(datos2$nota, datos2$estudio, FUN=mean)
+points(medias, col='red', pch=15)
+
+```
+
