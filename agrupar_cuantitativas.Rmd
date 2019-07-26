@@ -1,0 +1,63 @@
+---
+title: "Agrupacion de Clases Cuantitativas"
+author: "JJ"
+date: "19/7/2019"
+output: html_document
+---
+#La función `cut`
+
+```{r}
+
+iris_df <- iris
+
+petals <- iris$Petal.Length
+
+iris_df$div1 <- cut(petals, breaks = 5, right = FALSE) #especificando las divisiones a lo bestia
+iris_df$div2 <-cut(petals, breaks = ceiling(sqrt(length(petals))), right = FALSE) #Usando la regra de la raiz cuadrada
+iris_df$div3 <-cut(petals, breaks = c(1,2,3,4,5,6,7),right = FALSE) #Explicitanto los extremos de los niveles
+
+iris_df$div4 <- cut(petals, breaks = 5, right = FALSE, labels = FALSE) #En vez de aparecer los intervalos, aparecen etiquetados como numeros secuenciales
+
+
+iris_df$div5 <- cut(petals, breaks = 5, right = FALSE, labels = c('low', 'mid-low', 'middle', 'mid-high', 'high')) #En vez de aparecer los intervalos a los que pertenece, le damos nombres a los intervalos
+
+iris_df
+
+```
+
+## FUNCIONES PARA LAS TABLAS de FRECUENCIAS
+
+```{r}
+TablaFrecs = function(x,k,A,p){ 
+  L = min(x)-p/2+A*(0:k)
+  x_cut = cut(x, breaks = L, right=FALSE)
+  intervals = levels(x_cut)
+  mc = (L[1]+L[2])/2+A*(0:(k-1))
+  Fr.abs = as.vector(table(x_cut)) 
+  Fr.rel = round(Fr.abs/length(x),4) 
+  Fr.cum.abs = cumsum(Fr.abs) 
+  Fr.cum.rel = cumsum(Fr.rel)
+  tabla = data.frame(intervals, mc, Fr.abs, Fr.cum.abs, Fr.rel, Fr.cum.rel)
+  tabla
+  }
+```
+
+```{r}
+TablaFrecs.L = function(x,L,V){
+  x_cut = cut(x, breaks=L, right=FALSE, include.lowest=V)
+  intervals = levels(x_cut)
+  mc = (L[1:(length(L)-1)]+L[2:length(L)])/2
+  Fr.abs = as.vector(table(x_cut)) 
+  Fr.rel = round(Fr.abs/length(x),4)
+  Fr.cum.abs = cumsum(Fr.abs)
+  Fr.cum.rel = cumsum(Fr.rel)
+  tabla = data.frame(intervals, mc, Fr.abs, Fr.cum.abs, Fr.rel, Fr.cum.rel)
+  tabla
+  }
+```
+
+```{r}
+TablaFrecs(petals,k = 6, A = 1, p = 0.1)
+TablaFrecs.L(petals, L = 1:7, V = FALSE)
+```
+

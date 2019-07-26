@@ -1,0 +1,177 @@
+,--
+title: "EstadisticosDatosAgrupados"
+author: "JJ"
+date: "23/7/2019"
+output: html_document
+---
+
+
+```{r, funcion_tabla_frecuenciasAgrupados}
+TablaFrecs.L = function(x,L,V){
+  x_cut = cut(x, breaks=L, right=FALSE, include.lowest=V)
+  intervals = levels(x_cut)
+  mc = (L[1:(length(L)-1)]+L[2:length(L)])/2
+  Fr.abs = as.vector(table(x_cut)) 
+  Fr.rel = round(Fr.abs/length(x),4)
+  Fr.cum.abs = cumsum(Fr.abs)
+  Fr.cum.rel = cumsum(Fr.rel)
+  tabla = data.frame(intervals, mc, Fr.abs, Fr.cum.abs, Fr.rel, Fr.cum.rel)
+  tabla
+  }
+
+```
+
+```{r}
+
+Limites <- c(20.95, 22.25, 23.55, 24.85, 26.15, 27.45, 28.75, 30.05, 31.35, 32.65, 33.95)
+tabla <- TablaFrecs.L(cangrejos$width, Limites, V=TRUE)
+tabla
+
+```
+
+Vamos a calcular los estadísticos
+
+```{r, total_medidas}
+TOT <- tabla$Fr.cum.abs[10]
+TOT
+```
+
+```{r, media}
+anchura_media <- round(sum(tabla$Fr.abs*tabla$mc)/TOT, 3) #Es la suma del producto de las frecuencias absolutas multiplicado por las marcas de clase dividido por el total.
+anchura_media #media
+```
+
+```{r, varianza}
+anchura_var <- round(sum(tabla$Fr.abs*tabla$mc^2)/TOT - anchura_media^2, 3) #es la suma del producto de la frecuencia absoluta por la marca de clase al cuadrado y dividida por n menos la media al cuadrado
+anchura_var #Varianza
+```
+
+
+```{r, desviacionTipica}
+anchura_dt <- round(sqrt(anchura_var), 3)
+anchura_dt #Desviación típica
+
+```
+
+
+```{r, intervaloModal}
+anchura_I.Modal <- tabla$intervals[which(tabla$Fr.abs == max(tabla$Fr.abs))]
+anchura_I.Modal #Intervalo modal
+
+```
+
+
+```{r, intervalo_crítico_Mediana}
+interval_critic_mediana <- tabla$intervals[which(tabla$Fr.cum.rel >= 0.5)]
+interval_critic_mediana[1] #Intervalo critico para la mediana
+
+```
+
+Con todo esto ya podemos calcular una estimación de la mediana de los datos reales
+
+```{r, estimacion_Mediana}
+
+n <- TOT #es el total de elementos que formaban parte de la muestra
+Lc <- Limites[4] #Límite inferior del intervalo del intervalo crítico de la mediana, en este caso es el que está en la posición 4 de la lista de los límites
+Lc.pos <- Limites[5] #Límite superior en este caso es el que esta en la posición 5
+Ac <- Limites[5]-Limites[4] #Anchura del intervalo la resta entre el límite superior y el inferior
+Nc.ant <- tabla$Fr.cum.abs[3] #Frecuencia absoluta acumulada del anterior es la frecuencia absoluta del intervalo anterior al del intervalo crítico de la mediana, en este caso es el que está en la posición 3 en la tabla
+nc <- tabla$Fr.abs[4] #Frecuencia absoluta del intervalo (es el intervalo crítico de la mediana)
+M <- Lc+Ac*((n/2)-Nc.ant)/nc #con todos estos datos, aplico la fórmula para calcular la aproximación de la mediana para los datos reales
+M #aproximación de la mediana real
+
+
+```
+
+Defino una función para que me haga el cálculo de la estimación de la mediana real, en esta función habra que suministrarle la tabla de frecuencias, el indice del límite inferior de la mediana (recogido en la lista de límites), y el indice del intervalo crítico de la mediana (en la tabla de frecuencias aquel que supera el 0.5 de la frecuencia relativa)
+
+```{r, funcion_estimacion_mediana}
+
+fun_est_mediana <- function(tabla, ind_L.inf, ind_Inter_Mediana){
+  n <- tabla$Fr.cum.abs[length(tabla$Fr.cum.abs)]
+  Lc <- L[ind_L.inf] 
+  Lc.pos <- L[ind_L.inf + 1]
+  Ac <- L[ind_L.inf + 1]-Limites[ind_L.inf]
+  Nc.ant <- tabla$Fr.cum.abs[ind_Inter_Mediana - 1]
+  nc <- tabla$Fr.abs[ind_Inter_Mediana]
+  M <- Lc+Ac*((n/2)-Nc.ant)/nc
+  return(M)
+}
+
+```
+
+
+```{r}
+fun_est_mediana(tabla = tabla, ind_L.inf = 4, ind_Inter_Mediana = 4)
+```
+
+Aproximación de los cuantiles
+
+```{r}
+aprox.quantile.p = function(Lcrit,Acrit,n,p,Ncrit.ant,ncrit){
+  round(Lcrit+Acrit*(p*n-Ncrit.ant)/ncrit,3)
+}
+
+aprox.quantile.p(Lc,Ac,n,0.25,Nc.ant,nc) #primer cuartil
+```
+
+```{r}
+aprox.quantile.p(Lc,Ac,n,0.75,Nc.ant,nc) #tercer cuartil
+```
+
+## Ejercicio con notas
+```{r}
+notas <- c(6, 0, 3,  3,  8,  2,  7,  9, 10,  0,  8,  3,  1, 10,  4,  5, 10,  6, 10,  8,  7, 10,  5, 5,  7,  9,  5,  9,  5,  5,  6,  2,  9,  7,  5, 10,  5,  6,  4,  0, 10,  2,  6,  1,  9,  0, 9, 9,  7,  6,  4,  8,  9,  8,  9,  4,  1,  1,  9,  8,  6,  0,  9, 10,  2,  6,  0,  5,  8, 10,  3,  6,  4,  3,  9,  7,  3,  4,  2,  1, 10,  7,  6, 10,  9,  0,  0, 10,  2, 10,  2,  1, 5,  2,  3,  0,  8,  4,  0,  7)
+```
+
+```{r}
+#Definimos el valor los extremos
+L <- c(0,5,7,9,10)
+
+#Definimos las notas1 como el resultado de la codificación en intervalos:
+
+notas1 <- cut(notas, breaks = L, right = FALSE, include.lowest = TRUE)
+notas1
+```
+
+```{r}
+tabla <- TablaFrecs.L(x = notas, L,TRUE)
+tabla
+```
+
+```{r}
+TOT <- tabla$Fr.cum.abs[length(tabla$Fr.cum.abs)]
+TOT
+```
+
+```{r}
+anchura_media <- round(sum(tabla$Fr.abs*tabla$mc)/TOT, 3)
+anchura_media
+
+```
+
+```{r}
+anchura_var <- round(sum(tabla$Fr.abs*tabla$mc^2)/TOT - anchura_media^2, 3)
+anchura_var
+```
+
+```{r}
+anchura_dt <- round(sqrt(anchura_var), 3)
+anchura_dt #Desviación típica
+```
+
+```{r}
+anchura_I.Modal <- tabla$intervals[which(tabla$Fr.abs == max(tabla$Fr.abs))]
+anchura_I.Modal #Intervalo modal
+```
+
+```{r}
+interval_critic_mediana <- tabla$intervals[which(tabla$Fr.cum.rel >= 0.5)]
+interval_critic_mediana[1] #Intervalo critico para la mediana
+```
+
+```{r}
+
+fun_est_mediana(tabla = tabla, ind_L.inf = 2, ind_Inter_Mediana = 2)
+```
+

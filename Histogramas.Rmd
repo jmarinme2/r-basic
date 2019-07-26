@@ -1,0 +1,136 @@
+---
+title: "Histogramas"
+author: "JJ"
+date: "25/7/2019"
+output: html_document
+---
+## Este Markdown tiene distintas funciones para dibujar Histogramas de frecuencias
+
+### Para crear histogramas de frecuencias absolutas más completos:
+Los parámetros que toma la función son:
+  * x es el vector numérico del que queremos dibujar el histograma
+  * L son los extremos de los intervalos (divisiones)
+Dibuja un histograma de ese vector con las divisiones que le hemos marcado, sin cerrar por la derecha, y de momento sin incluir o mostrar las frecuencias relativas. Tiene una serie de parámetros como la configuración de color, un título, las etiquetas de los ejesx e y.
+Lo importante es que en el eje de las X se colocan las etiquetas dadas por el propio vector de intervalos.
+COmo parámetro adicional se usa la fución text para escribir un texto justo en las marcas de clase en x, y a la mitad de la densidad, es decir a la mitad de las barras en cuestión, como etiquetas empleamos la variable count del propio histograma y lo escribo en color purpura.
+
+xaxt="n" e yaxt="n" especifican que, por ahora, la función no dibuje los ejes de abcisas y ordenadas, respectivamente. Por eso lo podemos poner después usando axis(1, at=L)
+
+axis(i, at=...) dibuja el eje correspondiente al valor de i con marcas en los lugares indicados por el vector definido mediante at. Si i=1, el de abcisas; si i=2, el de ordenadas.
+
+Otra forma de indicar las frecuencias absolutas de las barras es utilizar la función rug, la cual permite añadir al histograma una "alfombra" con marcas en todos los valores del vector, donde el grosor de cada marca es proporcional a la frecuencia del valor que representa.
+
+Existe la posibilidad de añadir un poco de ruido a los datos de un vector para deshacer posibles empates. Esto lo conseguimos combinando la función rug con jitter.
+
+```{r, histograma.frecuencias.absolutas}
+histAbs = function(x,L) {
+  h = hist(x, breaks = L, right = FALSE, freq = FALSE,
+           xaxt = "n", yaxt = "n", col = "lightgray", 
+           main = "Histograma de frecuencias absolutas", 
+           xlab = "Intervalos y marcas de clase",ylab = "Frecuencias absolutas")
+  axis(1, at=L)
+  text(h$mids, h$density/2, labels=h$counts, col="purple") 
+  }
+```
+
+### Para crear histogramas de frecuencias absolutas acumuladas
+
+
+
+```{r}
+histAbsCum = function(x,L) {
+  h = hist(x, breaks = L, right = FALSE , plot = FALSE) 
+  h$density = cumsum(h$density)
+  plot(h, freq = FALSE, xaxt = "n", yaxt = "n", col = "lightgray", 
+       main = "Histograma de frecuencias\nabsolutas acumuladas", xlab = "Intervalos", 
+       ylab = "Frec. absolutas acumuladas")
+  axis(1, at=L)
+  text(h$mids, h$density/2, labels = cumsum(h$counts), col = "purple")
+  rug(x)
+  }
+```
+
+```{r}
+TablaFrecs.L = function(x,L,V){
+  x_cut = cut(x, breaks=L, right=FALSE, include.lowest=V)
+  intervals = levels(x_cut)
+  mc = (L[1:(length(L)-1)]+L[2:length(L)])/2
+  Fr.abs = as.vector(table(x_cut)) 
+  Fr.rel = round(Fr.abs/length(x),4)
+  Fr.cum.abs = cumsum(Fr.abs)
+  Fr.cum.rel = cumsum(Fr.rel)
+  tabla = data.frame(intervals, mc, Fr.abs, Fr.cum.abs, Fr.rel, Fr.cum.rel)
+  tabla
+  }
+```
+
+```{r}
+Limites <- c(20.95, 22.25, 23.55, 24.85, 26.15, 27.45, 28.75, 30.05, 31.35, 32.65, 33.95)
+tabla <- TablaFrecs.L(cangrejos$width, Limites, V=TRUE)
+tabla
+```
+
+
+```{r}
+hist(cangrejos$width, breaks = Limites, right = FALSE, plot = FALSE)
+```
+
+```{r}
+histAbsCum(cangrejos$width, Limites)
+```
+
+### Histogramas de frecuencias relativas
+
+```{r}
+histRel = function(x,L) {
+  h = hist(x, breaks=L, right=FALSE , plot=FALSE)
+  t = round(1.1*max(max(density(x)[[2]]),h$density),2) 
+  plot(h, freq = FALSE, col = "lightgray", 
+       main = "Histograma de frec. relativas\ny curva de densidad estimada", 
+       xaxt="n", ylim=c(0,t), xlab="Intervalos", ylab="Densidades")
+  axis(1, at = L) 
+  text(h$mids, h$density/2, labels = round(h$counts/length(x),2), col = "blue")
+  lines(density(x), col = "purple", lwd = 2) 
+  rug(x)
+  }
+```
+
+```{r}
+histRel(cangrejos$width, Limites)
+```
+
+### Histograma de frecuencias relativas acumuladas
+
+```{r}
+histRelCum = function(x,L){
+  h = hist(x, breaks = L, right = FALSE , plot = FALSE)
+  h$density = cumsum(h$counts)/length(x)
+  plot(h, freq = FALSE, 
+      main = "Histograma de frec. rel. acumuladas\n y curva de distribución estimada", 
+      xaxt = "n", col = "lightgray", xlab = "Intervalos", 
+      ylab = "Frec. relativas acumuladas") 
+  axis(1, at = L)
+  text(h$mids, h$density/2, labels = round(h$density ,2), col = "blue")
+  dens.x = density(x)
+  dens.x$y = cumsum(dens.x$y)*(dens.x$x[2]-dens.x$x[1]) 
+  lines(dens.x,col = "purple",lwd = 2)
+  rug(jitter(x))
+}
+```
+
+```{r}
+histRelCum(cangrejos$width, Limites)
+```
+
+### Dibujandole una distribucion normal
+
+```{r}
+
+histRel(cangrejos$width,Limites)
+curve(dnorm(x, mean(cangrejos$width), sd(cangrejos$width)), col="cyan4", lty=4, lwd=2,
+add=TRUE)
+legend("topright", lwd=c(2,2), lty=c(1,4), col=c("purple","cyan4"),
+       legend=c("densidad estimada","densidad normal"))
+```
+
+

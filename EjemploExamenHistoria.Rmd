@@ -1,0 +1,79 @@
+---
+title: "EjemploExamenHistoria"
+author: "JJ"
+date: "22/7/2019"
+output: html_document
+---
+
+
+```{r}
+notas <- c(6, 0, 3,  3,  8,  2,  7,  9, 10,  0,  8,  3,  1, 10,  4,  5, 10,  6, 10,  8,  7, 10,  5, 5,  7,  9,  5,  9,  5,  5,  6,  2,  9,  7,  5, 10,  5,  6,  4,  0, 10,  2,  6,  1,  9,  0, 9, 9,  7,  6,  4,  8,  9,  8,  9,  4,  1,  1,  9,  8,  6,  0,  9, 10,  2,  6,  0,  5,  8, 10,  3,  6,  4,  3,  9,  7,  3,  4,  2,  1, 10,  7,  6, 10,  9,  0,  0, 10,  2, 10,  2,  1, 5,  2,  3,  0,  8,  4,  0,  7)
+
+```
+
+
+Vamos a agrupar las notas en los siguientes intervalos:
+
+[0,5), [5,7), [7,9), [9,10]
+
+```{r}
+#Definimos el valor los extremos
+L <- c(0,5,7,9,10)
+
+#Definimos las notas1 como el resultado de la codificación en intervalos:
+
+notas1 <- cut(notas, breaks = L, right = FALSE, include.lowest = TRUE)
+notas1
+
+```
+
+```{r}
+#Definimos las marcas de las clases
+MC = (L[1:length(L)-1]+ L[2:length(L)])/2
+#Definimos notas2 como el resultado de la codificación en intervalos utilizando como etiquetas las marcas de clase
+notas2 <- cut(notas, breaks = L, labels = MC, right = FALSE, include.lowest = TRUE)
+notas2
+```
+
+```{r}
+notas3 <- cut(notas, breaks = L, labels = c('suspenso', 'aprovado', 'notable', 'sobresaliente'), right = FALSE, include.lowest = TRUE)
+notas3
+```
+
+```{r}
+table(notas3) #Frecuencias absolutas
+```
+
+```{r}
+prop.table(table(notas3)) #Frecuencias relativas
+```
+
+```{r}
+cumsum(table(notas3)) #Frecuencias acumuladas
+``` 
+
+```{r}
+cumsum(prop.table(table(notas3))) #Frecuencias relativas acumuladas
+```
+
+```{r}
+notasHist <- hist(notas, breaks = L, right = FALSE, include.lowest = TRUE, plot = FALSE)
+FAbs <- notasHist$count
+FRel <- prop.table(FAbs)
+FAbsCum <- cumsum(FAbs)
+FRelCum <- cumsum(FRel)
+
+FAbs
+
+```
+
+Podemos crear un data frame:
+```{r}
+intervalos <- c('[0,5)', '[5,7)', '[7,9)', '[9,10]')
+calificaciones <- c('suspenso', 'aprovado', 'notable', 'sobresaliente')
+marcas <- notasHist$mids
+tabla.Fr <- data.frame(intervalos, calificaciones, marcas, FAbs, FAbsCum, FRel, FRelCum)
+tabla.Fr
+```
+
+Recuerda que tenemos hechas una función de Tabla de frecuencias en un script!!!
